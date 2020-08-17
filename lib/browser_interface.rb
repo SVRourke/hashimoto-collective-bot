@@ -11,12 +11,21 @@ class BrowserInterface
     # LOGS IN TO THE ACCOUNT, LEAVES BROWSER @ TARGET URL
 
     def login
+        # form
+        form = @browser.find_element(:css, "form#customer_login")
         # get email field
-        email_field = @browser.find_element(:css, "input#login-email")
+        email_field = form.find_element(:css, "input#login-email")
         # get password field
-        password_field = @browser.find_element(:css, "input#login-password")
+        password_field = form.find_element(:css, "input#login-password")
         # get submit button
-        login_button = @browser.find_element(:css, "input#login-password")
+        login_button = form.find_element(:css, "input.button")
+
+        email_field.send_keys(@account.email)
+        password_field.send_keys(@account.password)
+        puts "waiting"
+        sleep(10)
+        login_button.click()
+
 
 
     end

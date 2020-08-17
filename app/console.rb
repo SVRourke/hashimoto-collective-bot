@@ -11,6 +11,6 @@ user_attrs = {
 ac1 = Account.new(user_attrs)
 
 ix = BrowserInterface.new(ac1)
-ix.goto_page(soldOut_url)
+ix.goto_page(login_url)
 
 binding.pry

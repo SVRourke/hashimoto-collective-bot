@@ -1,4 +1,5 @@
 class BrowserInterface
+    attr_accessor :browser
 
 
     # Opens a browser on initialization
@@ -9,25 +10,17 @@ class BrowserInterface
 
     # =======================================================
     # LOGS IN TO THE ACCOUNT, LEAVES BROWSER @ TARGET URL
-
     def login
         # form
         form = @browser.find_element(:css, "form#customer_login")
-        # get email field
         email_field = form.find_element(:css, "input#login-email")
-        # get password field
         password_field = form.find_element(:css, "input#login-password")
-        # get submit button
         login_button = form.find_element(:css, "input.button")
-
+        
+        # filling form and submitting
         email_field.send_keys(@account.email)
         password_field.send_keys(@account.password)
-        puts "waiting"
-        sleep(10)
         login_button.click()
-
-
-
     end
     
     # =======================================================
@@ -38,18 +31,82 @@ class BrowserInterface
     end
     
     # =======================================================
-    # ADD TO CART
+    # Start Checkout
 
-    def add_to_cart
+    def start_checkout
+        @browser.find_element(:css, "button.shopify-payment-button__button").click()
     end
     
     # =======================================================
-    # CHECKOUT
-    def checkout
+    # CHECKOUT CUSTOMER INFO
+    def checkout_customer_info
+        email = @browser.find_element(:css, "input#checkout_email")
+        
+        shipping_address = @browser.find_element(:css, "div.section--shipping-address")
+        
+        first_name = shipping_address.find_element(:css, "input#checkout_shipping_address_first_name")
+        last_name = shipping_address.find_element(:css, "input#checkout_shipping_address_last_name")
+        address_1 = shipping_address.find_element(:css, "input#checkout_shipping_address_address1")
+        apt_suite = shipping_address.find_element(:css, "input#checkout_shipping_address_address2")
+        city = shipping_address.find_element(:css, "input#checkout_shipping_address_city")
+        # submit button
+        submit = shipping_address.find_element(:xpath, '//*[@id="continue_button"]')
+        # country  = shipping_address.find_element(:css, "select#checkout_shipping_address_country")
+        state = shipping_address.find_element(:xpath, '//*[@id="checkout_shipping_address_province"]')
+        zip = shipping_address.find_element(:css, "input#checkout_shipping_address_zip")
+
+        
+        email.send_keys(@account.info[:email])
+        first_name.send_keys(@account.info[:first_name])
+        last_name.send_keys(@account.info[:last_name])
+        address_1.send_keys(@account.info[:address_1])
+        apt_suite.send_keys(@account.info[:apt_suite])
+        city.send_keys(@account.info[:city])
+        zip.send_keys(@account.info[:zip])
+
+        submit.click()
+
     end
     
+    # =======================================================
+    # CHECKOUT SHIPPING
+    def checkout_shipping
+        @browser.find_element(:xpath, '//*[@id="continue_button"]').click()
+    end
+    
+    # =======================================================
+    # CHECKOUT PAYMENT
+    # remove the elements with empty strings as keys
+    # click the iframe, then switch_to.active_element().sendkeys()
+    # switch_to.default_content() to return from iframe
+    def checkout_payment_info
+        card_form = @browser.find_element(:xpath, '/html/body/div/div/div/main/div[1]/div/form/div[1]/div[2]/div[2]')
+        card_frames = build_frame_hash(card_form)
+
+        card_frames.each do |k, v|
+            v.send_keys(@account.card_info[k])
+        end       
+    end
+
     # =======================================================
     # HELPERS
+    def build_frame_hash(form)
+        frames = Hash.new()
+        form.find_elements(:css, 'iframe').each do |frame|
+            field_name = frame.attribute('class').split('-')[2]
+            frames[field_name.to_sym] = frame
+        end
+        frames
+    end
+
+    # clears the Signup modal that displays when the site is visited
+    def clear_modal(home_url)
+        @browser.navigate.to(home_url)
+        sleep(3)
+        if @browser.find_elements(:css, "div.mc-closeModal").count > 0
+            @browser.find_element(:css, "div.mc-closeModal").click()
+        end        
+    end
 
     # navigates to the desired url
     def goto_page(url)

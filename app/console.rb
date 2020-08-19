@@ -6,7 +6,7 @@ available_url = "#{base_url}prints/products/lizzie-gill-meet-me-anywhere-but-my-
 soldOut_url = "#{base_url}prints/products/stephanie-brown-swailing-print"
 user_attrs = {
     :info => {
-        :email => "flossyflynt7@gmail.com",
+        :email => "test@example.com",
         :first_name => "Samuel",
         :last_name => "Rourke",
         :address_1 => "666 highway to hell",
@@ -17,27 +17,42 @@ user_attrs = {
         :zip => "33311"
     },
     :card_info => {
-        :number => "444444444444",
+        :number => "4444-4444-4444-4444",
         :name => "Samuel Rourke",
-        :expiry => "01/24",
+        :expiry => "0124",
         :verification_value => '444'
+    },
+    :billing_address => {
+        :first_name => "Samuel",
+        :last_name => "Rourke",
+        :address => "300 oakwood ln",
+        :apt_suite => "",
+        :zip => "33020",
     }
 }
-
 browsers = Array.new
 
 ac1 = Account.new(user_attrs)
 
 ix = BrowserInterface.new(ac1)
-ix.clear_modal(base_url)
+ix.goto_page(base_url)
+ix.clear_modal
 
-ix.goto_page(available_url)
-sleep(2)
-ix.start_checkout
-sleep(2)
-ix.checkout_customer_info
-sleep(2)
-ix.checkout_shipping
+scheduler = Rufus::Scheduler.new
+scheduler.at '16:55:00' do
+    ix.goto_page(available_url)
+    ix.start_checkout
+    ix.checkout_customer_info
+    ix.checkout_shipping
+    ix.checkout_payment_info
+    ix.checkout_billing_address
+end
+
+scheduler.join
+
+# sleep(5)
+
+
 # sleep(2)
 
 
@@ -45,3 +60,7 @@ ix.checkout_shipping
 # ix.login
 
 binding.pry
+# begin
+# rescue Selenium::WebDriver::Error::ElementNotInteractableError
+#     retry
+# end

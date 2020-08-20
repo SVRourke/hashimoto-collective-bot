@@ -8,11 +8,25 @@ class BrowserInterface
         puts "-DONE"
     end
 
+    def start_interface(url)
+        goto_page(url)
+        clear_modal
+    end
+
+    def checkout(billing=false)
+        start_checkout()
+        checkout_customer_info()
+        checkout_shipping()
+        checkout_payment_info()
+        checkout_billing_address(billing)
+    end
+
     # =======================================================
     # CHECKS PRODUCT AVAILABILITY
     def in_stock?
-        buy_button = @browser.find_element(:css, "button.shopify-payment-button__button").text().upcase
-        buy_button != ""
+        wait = Selenium::WebDriver::Wait.new(:timeout => 40)
+        buy_button = wait.until {@browser.find_element(:css, "button.shopify-payment-button__button")}
+        buy_button.text().upcase() != ""
     end
     
     # =======================================================
@@ -114,16 +128,20 @@ class BrowserInterface
 
     # =======================================================
     # 06: CHECKOUT BILLING ADDRESS
-    def checkout_billing_address
-        form = @browser.find_by(:css, "div#section--billing-address__different")
-        first_name = form.find_element(:css, "input#checkout_billing_address_first_name")
-        last_name = form.find_element(:css, "input#checkout_billing_address_last_name")
-        address = form.find_element(:css, "input#checkout_billing_address_address1")
-        apt_suite = form.find_element(:css, "input#checkout_billing_address_address2")
-        city = form.find_element(:css, "input#checkout_billing_address_city")
-        zipcode = form.find_element(:css, "input#checkout_billing_address_zip")
-
-        first_name.send_keys(@account.billing_address[:first_name])
+    def checkout_billing_address(same = false)
+        if same
+            @browser.find_element(:css, "input#checkout_different_billing_address_false").click()
+        else
+            form = @browser.find_element(:css, "div#section--billing-address__different")
+            first_name = form.find_element(:css, "input#checkout_billing_address_first_name")
+            last_name = form.find_element(:css, "input#checkout_billing_address_last_name")
+            address = form.find_element(:css, "input#checkout_billing_address_address1")
+            apt_suite = form.find_element(:css, "input#checkout_billing_address_address2")
+            city = form.find_element(:css, "input#checkout_billing_address_city")
+            zipcode = form.find_element(:css, "input#checkout_billing_address_zip")
+        end
+        # next button click
+        @browser.find_element(:css, "button#continue_button").click()
     end
 
     # =======================================================

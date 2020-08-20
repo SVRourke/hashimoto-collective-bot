@@ -34,30 +34,52 @@ browsers = Array.new
 
 ac1 = Account.new(user_attrs)
 
-ix = BrowserInterface.new(ac1)
-ix.goto_page(base_url)
-ix.clear_modal
+# ix.goto_page(base_url)
+# ix.clear_modal
 
+# scheduler = Rufus::Scheduler.new
+# scheduler.at '16:55:00' do
+#     ix.goto_page(available_url)
+#     ix.start_checkout
+#     ix.checkout_customer_info
+#     ix.checkout_shipping
+#     ix.checkout_payment_info
+#     ix.checkout_billing_address
+# end
+# scheduler.join
+
+# start
+ix = BrowserInterface.new(ac1)
 scheduler = Rufus::Scheduler.new
-scheduler.at '16:55:00' do
-    ix.goto_page(available_url)
-    ix.start_checkout
-    ix.checkout_customer_info
-    ix.checkout_shipping
-    ix.checkout_payment_info
-    ix.checkout_billing_address
+
+ix.start_interface(base_url)
+ix.goto_page(available_url)
+
+# wait
+scheduler.at '00:10:00' do
+    begin
+        ix.reload()
+        
+        # if ix.in_stock?
+        ix.checkout(billing = true)
+        # end
+    rescue
+        puts "retrying"
+        retry
+    end
 end
 
 scheduler.join
-
-# sleep(5)
-
-
-# sleep(2)
+    # buy
+    # checkout
 
 
-
-# ix.login
+# ix.goto_page(available_url)
+# ix.start_checkout
+# ix.checkout_customer_info
+# ix.checkout_shipping
+# ix.checkout_payment_info
+# ix.checkout_billing_address(true)
 
 binding.pry
 # begin
